@@ -1,4 +1,5 @@
 <!-- views/layout.ejs -->
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -176,6 +177,9 @@
     </style>
 </head>
 <body>
+    <%
+const activePage = typeof active !== 'undefined' ? active : '';
+%>
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
         <div class="container">
             
@@ -188,22 +192,22 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link <%= active === 'home' ? 'active' : '' %>" href="/">
+                        <a class="nav-link <%= activePage === 'home' ? 'active' : '' %>" href="/">
                             <i class="bi bi-house"></i> Home
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <%= active === 'users' ? 'active' : '' %>" href="/users">
+                        <a class="nav-link <%= activePage === 'users' ? 'active' : '' %>" href="/users">
                             <i class="bi bi-people"></i> Users
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <%= active === 'games' ? 'active' : '' %>" href="/games">
+                        <a class="nav-link <%= activePage === 'games' ? 'active' : '' %>" href="/games">
                             <i class="bi bi-controller"></i> Games
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <%= active === 'library' ? 'active' : '' %>" href="/library">
+                        <a class="nav-link <%= activePage === 'library' ? 'active' : '' %>" href="/library">
                             <i class="bi bi-collection"></i> Library
                         </a>
                     </li>

@@ -2,7 +2,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
-const { MongoClient, ObjectId } = require('mongodb');
+const { MongoClient, ObjectId, Decimal128 } = require('mongodb');
 const path = require('path');
 
 const expressLayouts = require('express-ejs-layouts');
@@ -74,32 +74,54 @@ app.get('/users/new', (req, res) => {
 
 // Create new user
 app.post('/users', async (req, res) => {
+
   try {
-    const { username, email, display_name, country_code, wallet_balance } = req.body;
-    
+
+    const usersCount = await db.collection('app_user').countDocuments();
+
     const newUser = {
-      username,
-      email,
-      display_name,
-      country_code,
-      wallet_balance: parseFloat(wallet_balance) || 0,
-      is_banned: false,
-      friends: [],
+
+      _id: usersCount + 1,
+
+      username: req.body.username,
+
+      email: req.body.email,
+
       password_hash: "default_hash",
-      created_at: new Date()
+
+      display_name: req.body.display_name,
+
+      country_code: req.body.country_code || null,
+
+      wallet_balance: Decimal128.fromString(
+        req.body.wallet_balance || "0"
+      ),
+
+      is_banned: false,
+
+      created_at: new Date(),
+
+      friends: []
     };
-    
+
     await db.collection('app_user').insertOne(newUser);
+
     res.redirect('/users');
+
   } catch (error) {
-    res.status(500).render('error', { error: error.message });
+
+    console.log(error);
+
+    res.status(500).render('error', {
+      error: error.message
+    });
   }
 });
 
 // Show single user
 app.get('/users/:id', async (req, res) => {
   try {
-    const user = await db.collection('app_user').findOne({ _id: new ObjectId(req.params.id) });
+    const user = await db.collection('app_user').findOne({ _id: parseInt(req.params.id) });
     if (!user) {
       return res.status(404).render('error', { error: 'User not found' });
     }
@@ -112,7 +134,7 @@ app.get('/users/:id', async (req, res) => {
 // Show edit user form
 app.get('/users/:id/edit', async (req, res) => {
   try {
-    const user = await db.collection('app_user').findOne({ _id: new ObjectId(req.params.id) });
+    const user = await db.collection('app_user').findOne({ _id: parseInt(req.params.id) });
     if (!user) {
       return res.status(404).render('error', { error: 'User not found' });
     }
@@ -137,7 +159,7 @@ app.put('/users/:id', async (req, res) => {
     };
     
     await db.collection('app_user').updateOne(
-      { _id: new ObjectId(req.params.id) },
+      { _id: parseInt(req.params.id) },
       { $set: updatedUser }
     );
     res.redirect('/users');
@@ -149,7 +171,7 @@ app.put('/users/:id', async (req, res) => {
 // Delete user
 app.delete('/users/:id', async (req, res) => {
   try {
-    await db.collection('app_user').deleteOne({ _id: new ObjectId(req.params.id) });
+    await db.collection('app_user').deleteOne({ _id: parseInt(req.params.id) });
     res.redirect('/users');
   } catch (error) {
     res.status(500).render('error', { error: error.message });
@@ -178,25 +200,56 @@ app.post('/games', async (req, res) => {
   try {
     const { title, description, base_price, age_rating, platforms, genres, developer_name, developer_country, developer_founded, publisher_name, publisher_country, is_early_access } = req.body;
     
-    const newGame = {
-      title,
-      description,
-      base_price: parseFloat(base_price) || 0,
-      age_rating: parseInt(age_rating) || 0,
-      platforms: platforms.split(',').map(p => p.trim()).filter(p => p),
-      genres: genres.split(',').map(g => g.trim()).filter(g => g),
-      developer: {
-        name: developer_name,
-        country_code: developer_country,
-        founded_year: parseInt(developer_founded) || 2020
-      },
-      publisher: {
-        name: publisher_name,
-        country_code: publisher_country
-      },
-      is_early_access: is_early_access === 'on' || is_early_access === true,
-      release_date: new Date()
-    };
+    const gamesCount = await db.collection('game').countDocuments();
+
+const newGame = {
+
+  _id: gamesCount + 1,
+
+  title,
+
+  description: description || null,
+
+  release_date: new Date(),
+
+  base_price: Decimal128.fromString(
+    base_price || "0"
+  ),
+
+  is_early_access:
+    is_early_access === 'on',
+
+  age_rating:
+    age_rating
+      ? parseInt(age_rating)
+      : null,
+
+  developer: {
+    name: developer_name,
+    country_code: developer_country || null,
+    founded_year:
+      developer_founded
+        ? parseInt(developer_founded)
+        : null
+  },
+
+  publisher: {
+    name: publisher_name,
+    country_code: publisher_country || null
+  },
+
+  genres: genres.split(',')
+    .map(g => ({
+      name: g.trim()
+    }))
+    .filter(g => g.name),
+
+  platforms: platforms.split(',')
+    .map(p => ({
+      name: p.trim()
+    }))
+    .filter(p => p.name)
+};
     
     await db.collection('game').insertOne(newGame);
     res.redirect('/games');
@@ -208,7 +261,7 @@ app.post('/games', async (req, res) => {
 // Show single game
 app.get('/games/:id', async (req, res) => {
   try {
-    const game = await db.collection('game').findOne({ _id: new ObjectId(req.params.id) });
+    const game = await db.collection('game').findOne({ _id: parseInt(req.params.id) });
     if (!game) {
       return res.status(404).render('error', { error: 'Game not found' });
     }
@@ -221,7 +274,7 @@ app.get('/games/:id', async (req, res) => {
 // Show edit game form
 app.get('/games/:id/edit', async (req, res) => {
   try {
-    const game = await db.collection('game').findOne({ _id: new ObjectId(req.params.id) });
+    const game = await db.collection('game').findOne({ _id: parseInt(req.params.id) });
     if (!game) {
       return res.status(404).render('error', { error: 'Game not found' });
     }
@@ -256,7 +309,7 @@ app.put('/games/:id', async (req, res) => {
     };
     
     await db.collection('game').updateOne(
-      { _id: new ObjectId(req.params.id) },
+      { _id: parseInt(req.params.id) },
       { $set: updatedGame }
     );
     res.redirect('/games');
@@ -268,7 +321,7 @@ app.put('/games/:id', async (req, res) => {
 // Delete game
 app.delete('/games/:id', async (req, res) => {
   try {
-    await db.collection('game').deleteOne({ _id: new ObjectId(req.params.id) });
+    await db.collection('game').deleteOne({ _id: parseInt(req.params.id) });
     res.redirect('/games');
   } catch (error) {
     res.status(500).render('error', { error: error.message });
@@ -285,7 +338,7 @@ app.get('/library', async (req, res) => {
     // Fetch user information for each entry
     for (let entry of entries) {
       if (entry.user_id) {
-        const user = await db.collection('app_user').findOne({ _id: new ObjectId(entry.user_id) });
+        const user = await db.collection('app_user').findOne({ _id: parseInt(entry.user_id) });
         entry.user = user;
       }
     }
@@ -312,20 +365,33 @@ app.post('/library', async (req, res) => {
   try {
     const { user_id, game_id, playtime_minutes, is_hidden } = req.body;
     
-    const game = await db.collection('game').findOne({ _id: new ObjectId(game_id) });
+    const game = await db.collection('game').findOne({
+  _id: parseInt(game_id)
+});
     
     const newEntry = {
-      user_id: new ObjectId(user_id),
-      game_snapshot: {
-        game_id: new ObjectId(game_id),
-        title: game.title,
-        base_price: game.base_price
-      },
-      playtime_minutes: parseInt(playtime_minutes) || 0,
-      is_hidden: is_hidden === 'on' || is_hidden === true,
-      acquired_at: new Date(),
-      last_played_at: new Date()
-    };
+
+  user_id: parseInt(user_id),
+
+  game_id: parseInt(game_id),
+
+  game: {
+
+    title: game.title,
+
+    base_price: game.base_price
+  },
+
+  acquired_at: new Date(),
+
+  playtime_minutes:
+    parseInt(playtime_minutes) || 0,
+
+  last_played_at: new Date(),
+
+  is_hidden:
+    is_hidden === 'on'
+};
     
     await db.collection('library_entry').insertOne(newEntry);
     res.redirect('/library');
@@ -337,13 +403,13 @@ app.post('/library', async (req, res) => {
 // Show single library entry
 app.get('/library/:id', async (req, res) => {
   try {
-    const entry = await db.collection('library_entry').findOne({ _id: new ObjectId(req.params.id) });
+    const entry = await db.collection('library_entry').findOne({ _id: parseInt(req.params.id) });
     if (!entry) {
       return res.status(404).render('error', { error: 'Library entry not found' });
     }
     
-    const user = await db.collection('app_user').findOne({ _id: new ObjectId(entry.user_id) });
-    const game = await db.collection('game').findOne({ _id: new ObjectId(entry.game_snapshot.game_id) });
+    const user = await db.collection('app_user').findOne({ _id: parseInt(entry.user_id) });
+    const game = await db.collection('game').findOne({ _id: parseInt(entry.game_snapshot.game_id) });
     
     entry.user = user;
     entry.game = game;
@@ -357,7 +423,7 @@ app.get('/library/:id', async (req, res) => {
 // Show edit library entry form
 app.get('/library/:id/edit', async (req, res) => {
   try {
-    const entry = await db.collection('library_entry').findOne({ _id: new ObjectId(req.params.id) });
+    const entry = await db.collection('library_entry').findOne({ _id: parseInt(req.params.id) });
     if (!entry) {
       return res.status(404).render('error', { error: 'Library entry not found' });
     }
@@ -379,7 +445,7 @@ app.put('/library/:id', async (req, res) => {
     };
     
     await db.collection('library_entry').updateOne(
-      { _id: new ObjectId(req.params.id) },
+      { _id: parseInt(req.params.id) },
       { $set: updatedEntry }
     );
     res.redirect('/library');
@@ -391,7 +457,7 @@ app.put('/library/:id', async (req, res) => {
 // Delete library entry
 app.delete('/library/:id', async (req, res) => {
   try {
-    await db.collection('library_entry').deleteOne({ _id: new ObjectId(req.params.id) });
+    await db.collection('library_entry').deleteOne({ _id: parseInt(req.params.id) });
     res.redirect('/library');
   } catch (error) {
     res.status(500).render('error', { error: error.message });
