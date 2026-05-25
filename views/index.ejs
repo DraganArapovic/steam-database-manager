@@ -1,0 +1,53 @@
+<!-- views/index.ejs -->
+<div class="welcome-section">
+    <h1><i class="bi bi-database"></i> Steam V2</h1>
+    <p class="lead">Complete database management system for your game platform</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <i class="bi bi-people" style="font-size: 2rem;"></i>
+            <h3><%= stats.users %></h3>
+            <p class="mb-0">Users</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <i class="bi bi-controller" style="font-size: 2rem;"></i>
+            <h3><%= stats.games %></h3>
+            <p class="mb-0">Games</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <i class="bi bi-collection" style="font-size: 2rem;"></i>
+            <h3><%= stats.libraryEntries %></h3>
+            <p class="mb-0">Library Entries</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card p-4">
+            <h4 class="card-title"><i class="bi bi-people"></i> Users Management</h4>
+            <p class="card-text">View, create, update, and delete user accounts. Manage user profiles, wallet balances, and account statuses.</p>
+            <a href="/users" class="btn btn-primary">Manage Users <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-4">
+            <h4 class="card-title"><i class="bi bi-controller"></i> Games Management</h4>
+            <p class="card-text">Browse and manage the game catalog. Add new games, update details, and maintain the game database.</p>
+            <a href="/games" class="btn btn-primary">Manage Games <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-4">
+            <h4 class="card-title"><i class="bi bi-collection"></i> Library Management</h4>
+            <p class="card-text">Track user game libraries. Monitor playtime, manage game visibility, and view acquisition history.</p>
+            <a href="/library" class="btn btn-primary">Manage Library <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+</div>

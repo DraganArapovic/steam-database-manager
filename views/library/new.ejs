@@ -1,0 +1,36 @@
+<!-- views/library/new.ejs -->
+<div class="form-container">
+    <h2 class="mb-4"><i class="bi bi-plus-circle"></i> Add Library Entry</h2>
+    <form action="/library" method="POST">
+        <div class="mb-3">
+            <label for="user_id" class="form-label">User</label>
+            <select class="form-control" id="user_id" name="user_id" required>
+                <option value="">Select User</option>
+                <% users.forEach(user => { %>
+                    <option value="<%= user._id %>"><%= user.username %> (<%= user.email %>)</option>
+                <% }); %>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="game_id" class="form-label">Game</label>
+            <select class="form-control" id="game_id" name="game_id" required>
+                <option value="">Select Game</option>
+                <% games.forEach(game => { %>
+                    <option value="<%= game._id %>"><%= game.title %></option>
+                <% }); %>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="playtime_minutes" class="form-label">Playtime (minutes)</label>
+            <input type="number" class="form-control" id="playtime_minutes" name="playtime_minutes" value="0">
+        </div>
+        <div class="mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="is_hidden" name="is_hidden">
+                <label class="form-check-label" for="is_hidden">Hide in Library</label>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Entry</button>
+        <a href="/library" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

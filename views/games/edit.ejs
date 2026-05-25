@@ -1,0 +1,66 @@
+<!-- views/games/edit.ejs -->
+<div class="form-container">
+    <h2 class="mb-4"><i class="bi bi-pencil-square"></i> Edit Game</h2>
+    <form action="/games/<%= game._id %>?_method=PUT" method="POST">
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title" value="<%= game.title %>" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="3" required><%= game.description %></textarea>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="base_price" class="form-label">Base Price ($)</label>
+                <input type="number" class="form-control" id="base_price" name="base_price" step="0.01" value="<%= typeof game.base_price === 'object' ? parseFloat(game.base_price.$numberDecimal).toFixed(2) : parseFloat(game.base_price).toFixed(2) %>">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="age_rating" class="form-label">Age Rating</label>
+                <input type="number" class="form-control" id="age_rating" name="age_rating" value="<%= game.age_rating %>">
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="platforms" class="form-label">Platforms (comma-separated)</label>
+            <input type="text" class="form-control" id="platforms" name="platforms" value="<%= game.platforms ? game.platforms.join(', ') : '' %>">
+        </div>
+        <div class="mb-3">
+            <label for="genres" class="form-label">Genres (comma-separated)</label>
+            <input type="text" class="form-control" id="genres" name="genres" value="<%= game.genres ? game.genres.join(', ') : '' %>">
+        </div>
+        <h5 class="mt-4">Developer Information</h5>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="developer_name" class="form-label">Developer Name</label>
+                <input type="text" class="form-control" id="developer_name" name="developer_name" value="<%= game.developer ? game.developer.name : '' %>">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="developer_country" class="form-label">Country</label>
+                <input type="text" class="form-control" id="developer_country" name="developer_country" value="<%= game.developer ? game.developer.country_code : '' %>" maxlength="2">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="developer_founded" class="form-label">Founded Year</label>
+                <input type="number" class="form-control" id="developer_founded" name="developer_founded" value="<%= game.developer ? game.developer.founded_year : 2020 %>">
+            </div>
+        </div>
+        <h5 class="mt-4">Publisher Information</h5>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="publisher_name" class="form-label">Publisher Name</label>
+                <input type="text" class="form-control" id="publisher_name" name="publisher_name" value="<%= game.publisher ? game.publisher.name : '' %>">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="publisher_country" class="form-label">Country</label>
+                <input type="text" class="form-control" id="publisher_country" name="publisher_country" value="<%= game.publisher ? game.publisher.country_code : '' %>" maxlength="2">
+            </div>
+        </div>
+        <div class="mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="is_early_access" name="is_early_access" <%= game.is_early_access ? 'checked' : '' %>>
+                <label class="form-check-label" for="is_early_access">Early Access</label>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Game</button>
+        <a href="/games" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

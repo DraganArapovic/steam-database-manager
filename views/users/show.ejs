@@ -1,0 +1,63 @@
+<!-- views/users/show.ejs -->
+<div class="card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-person"></i> User Details</h2>
+        <div>
+            <a href="/users/<%= user._id %>/edit" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <a href="/users" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Basic Information</h5>
+            <table class="table">
+                <tr>
+                    <td><strong>Username:</strong></td>
+                    <td><%= user.username %></td>
+                </tr>
+                <tr>
+                    <td><strong>Display Name:</strong></td>
+                    <td><%= user.display_name %></td>
+                </tr>
+                <tr>
+                    <td><strong>Email:</strong></td>
+                    <td><%= user.email %></td>
+                </tr>
+                <tr>
+                    <td><strong>Country:</strong></td>
+                    <td><%= user.country_code %></td>
+                </tr>
+                <tr>
+                    <td><strong>Created:</strong></td>
+                    <td><%= new Date(user.created_at).toLocaleDateString() %></td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-md-6">
+            <h5>Account Status</h5>
+            <table class="table">
+                <tr>
+                    <td><strong>Status:</strong></td>
+                    <td>
+                        <span class="badge <%= user.is_banned ? 'bg-danger' : 'bg-success' %>">
+                            <%= user.is_banned ? 'Banned' : 'Active' %>
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Wallet Balance:</strong></td>
+                    <td>$<%= typeof user.wallet_balance === 'object' ? parseFloat(user.wallet_balance.$numberDecimal).toFixed(2) : parseFloat(user.wallet_balance).toFixed(2) %></td>
+                </tr>
+                <tr>
+                    <td><strong>Friends:</strong></td>
+                    <td><%= user.friends ? user.friends.length : 0 %> friends</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
