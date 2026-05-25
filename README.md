@@ -63,18 +63,6 @@ npm run dev
 
 ---
 
-## Buduća poboljšanja
-
-- Autentifikacija korisnika
-- Admin panel
-- Upload slika za igre
-- Wishlist sistem
-- Sistem recenzija i ocjena
-- Docker podrška
-- API dokumentacija
-
----
-
 ## Autori
 
 - Dragan Arapović
