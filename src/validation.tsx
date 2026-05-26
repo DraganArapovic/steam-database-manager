@@ -12,7 +12,13 @@ export const formValidationHook = <Output,>(
     if (result.success) return undefined;
 
     return c.html(
-      <ValidationErrorPage active={active} issues={result.error} title={title} />,
+      <ValidationErrorPage
+        active={active}
+        currentPath={c.req.path}
+        databaseBackend={c.get("dbBackend")}
+        issues={result.error}
+        title={title}
+      />,
       400,
     );
   };

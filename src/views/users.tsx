@@ -1,22 +1,26 @@
-import type { AppUserDocument } from "../types";
-import {
-  formatDate,
-  formatMoney,
-  toObjectIdString,
-} from "../utils";
+import type { AppUser } from "../domain/models";
+import { formatDate, formatMoney } from "../utils";
 import {
   DeleteButton,
   DetailRow,
   EmptyState,
   PageHeader,
 } from "./components";
-import { Layout } from "./layout";
+import { Layout, type LayoutContext } from "./layout";
 
-const userHref = (user: AppUserDocument): string =>
-  `/users/${toObjectIdString(user._id)}`;
+const userHref = (user: AppUser): string => `/users/${user.id}`;
 
-export const UsersListPage = ({ users }: { users: readonly AppUserDocument[] }) => (
-  <Layout active="users" title="Users">
+export const UsersListPage = ({
+  currentPath,
+  databaseBackend,
+  users,
+}: LayoutContext & { users: readonly AppUser[] }) => (
+  <Layout
+    active="users"
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title="Users"
+  >
     <PageHeader
       action={
         <a class="btn btn-primary" href="/users/new">
@@ -45,17 +49,17 @@ export const UsersListPage = ({ users }: { users: readonly AppUserDocument[] }) 
           </thead>
           <tbody>
             {users.map(user => (
-              <tr key={toObjectIdString(user._id)}>
+              <tr key={user.id}>
                 <td>
                   <strong>{user.username}</strong>
                 </td>
-                <td>{user.display_name}</td>
+                <td>{user.displayName}</td>
                 <td>{user.email}</td>
-                <td>{user.country_code ?? "N/A"}</td>
-                <td>${formatMoney(user.wallet_balance)}</td>
+                <td>{user.countryCode ?? "N/A"}</td>
+                <td>${formatMoney(user.walletBalance)}</td>
                 <td>
-                  <span class={`badge ${user.is_banned ? "bg-danger" : "bg-success"}`}>
-                    {user.is_banned ? "Banned" : "Active"}
+                  <span class={`badge ${user.isBanned ? "bg-danger" : "bg-success"}`}>
+                    {user.isBanned ? "Banned" : "Active"}
                   </span>
                 </td>
                 <td class="action-buttons">
@@ -76,8 +80,16 @@ export const UsersListPage = ({ users }: { users: readonly AppUserDocument[] }) 
   </Layout>
 );
 
-export const NewUserPage = () => (
-  <Layout active="users" title="Create User">
+export const NewUserPage = ({
+  currentPath,
+  databaseBackend,
+}: LayoutContext) => (
+  <Layout
+    active="users"
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title="Create User"
+  >
     <div class="form-container">
       <h2 class="mb-4">
         <i class="bi bi-person-plus" /> Create New User
@@ -162,8 +174,17 @@ export const NewUserPage = () => (
   </Layout>
 );
 
-export const EditUserPage = ({ user }: { user: AppUserDocument }) => (
-  <Layout active="users" title={`Edit ${user.username}`}>
+export const EditUserPage = ({
+  currentPath,
+  databaseBackend,
+  user,
+}: LayoutContext & { user: AppUser }) => (
+  <Layout
+    active="users"
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title={`Edit ${user.username}`}
+  >
     <div class="form-container">
       <h2 class="mb-4">
         <i class="bi bi-pencil-square" /> Edit User
@@ -208,7 +229,7 @@ export const EditUserPage = ({ user }: { user: AppUserDocument }) => (
               name="display_name"
               required
               type="text"
-              value={user.display_name}
+              value={user.displayName}
             />
           </div>
           <div class="col-md-3 mb-3">
@@ -221,7 +242,7 @@ export const EditUserPage = ({ user }: { user: AppUserDocument }) => (
               maxLength={2}
               name="country_code"
               type="text"
-              value={user.country_code ?? ""}
+              value={user.countryCode ?? ""}
             />
           </div>
           <div class="col-md-3 mb-3">
@@ -235,13 +256,13 @@ export const EditUserPage = ({ user }: { user: AppUserDocument }) => (
               name="wallet_balance"
               step="0.01"
               type="number"
-              value={formatMoney(user.wallet_balance)}
+              value={formatMoney(user.walletBalance)}
             />
           </div>
         </div>
         <div class="form-check mb-3">
           <input
-            checked={user.is_banned}
+            checked={user.isBanned}
             class="form-check-input"
             id="is_banned"
             name="is_banned"
@@ -262,8 +283,17 @@ export const EditUserPage = ({ user }: { user: AppUserDocument }) => (
   </Layout>
 );
 
-export const UserDetailsPage = ({ user }: { user: AppUserDocument }) => (
-  <Layout active="users" title={user.username}>
+export const UserDetailsPage = ({
+  currentPath,
+  databaseBackend,
+  user,
+}: LayoutContext & { user: AppUser }) => (
+  <Layout
+    active="users"
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title={user.username}
+  >
     <div class="card p-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>
@@ -285,10 +315,10 @@ export const UserDetailsPage = ({ user }: { user: AppUserDocument }) => (
           <table class="table">
             <tbody>
               <DetailRow label="Username" value={user.username} />
-              <DetailRow label="Display Name" value={user.display_name} />
+              <DetailRow label="Display Name" value={user.displayName} />
               <DetailRow label="Email" value={user.email} />
-              <DetailRow label="Country" value={user.country_code ?? "N/A"} />
-              <DetailRow label="Created" value={formatDate(user.created_at)} />
+              <DetailRow label="Country" value={user.countryCode ?? "N/A"} />
+              <DetailRow label="Created" value={formatDate(user.createdAt)} />
             </tbody>
           </table>
         </div>
@@ -299,14 +329,14 @@ export const UserDetailsPage = ({ user }: { user: AppUserDocument }) => (
               <DetailRow
                 label="Status"
                 value={
-                  <span class={`badge ${user.is_banned ? "bg-danger" : "bg-success"}`}>
-                    {user.is_banned ? "Banned" : "Active"}
+                  <span class={`badge ${user.isBanned ? "bg-danger" : "bg-success"}`}>
+                    {user.isBanned ? "Banned" : "Active"}
                   </span>
                 }
               />
               <DetailRow
                 label="Wallet Balance"
-                value={`$${formatMoney(user.wallet_balance)}`}
+                value={`$${formatMoney(user.walletBalance)}`}
               />
               <DetailRow label="Friends" value={`${user.friends.length} friends`} />
             </tbody>

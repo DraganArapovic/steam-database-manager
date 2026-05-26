@@ -2,13 +2,20 @@ import "dotenv/config";
 
 import { serve } from "@hono/node-server";
 
+import { createMongoRepositories } from "./adapters/mongo/repositories";
+import { createPostgresPool } from "./adapters/postgres/pool";
+import { createPostgresRepositories } from "./adapters/postgres/repositories";
 import { createApp } from "./app";
 import { loadConfig } from "./config";
 import { connectDatabase } from "./db";
 
 const config = loadConfig();
-const database = await connectDatabase(config);
-const app = createApp(database);
+const mongoDatabase = await connectDatabase(config);
+const postgresPool = createPostgresPool(config.POSTGRES_URL);
+const app = createApp({
+  mongo: createMongoRepositories(mongoDatabase),
+  postgres: createPostgresRepositories(postgresPool),
+});
 
 serve({
   fetch: app.fetch,

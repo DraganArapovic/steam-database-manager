@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const OBJECT_ID_PATTERN = /^[0-9a-fA-F]{24}$/;
+const ENTITY_ID_PATTERN = /^([0-9a-fA-F]{24}|\d+)$/;
 
 const stringFromForm = (value: unknown): string | undefined => {
   if (typeof value !== "string") return undefined;
@@ -18,9 +18,11 @@ const nullableString = (max = 255) =>
     z.string().max(max).nullable(),
   );
 
-const objectIdString = z.preprocess(
+const entityIdString = z.preprocess(
   stringFromForm,
-  z.string().regex(OBJECT_ID_PATTERN, "Expected a 24-character ObjectId."),
+  z
+    .string()
+    .regex(ENTITY_ID_PATTERN, "Expected a MongoDB ObjectId or PostgreSQL id."),
 );
 
 const checkboxBoolean = z.preprocess(
@@ -122,10 +124,10 @@ export const GameFormSchema = z.object({
 });
 
 export const CreateLibraryEntryFormSchema = z.object({
-  game_id: objectIdString,
+  game_id: entityIdString,
   is_hidden: checkboxBoolean,
   playtime_minutes: intNumber(0),
-  user_id: objectIdString,
+  user_id: entityIdString,
 });
 
 export const UpdateLibraryEntryFormSchema = z.object({

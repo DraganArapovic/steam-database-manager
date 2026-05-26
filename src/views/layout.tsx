@@ -1,12 +1,22 @@
 import type { Child } from "hono/jsx";
 
+import type { DatabaseBackend } from "../domain/models";
+
 export type ActivePage = "games" | "home" | "library" | "users";
 
-type LayoutProps = {
+export type LayoutContext = {
+  currentPath: string;
+  databaseBackend: DatabaseBackend;
+};
+
+type LayoutProps = LayoutContext & {
   active: ActivePage;
   children: Child;
   title: string;
 };
+
+type OptionalLayoutProps = Omit<LayoutProps, keyof LayoutContext> &
+  Partial<LayoutContext>;
 
 const navItems: ReadonlyArray<{
   href: string;
@@ -20,7 +30,13 @@ const navItems: ReadonlyArray<{
   { href: "/library", icon: "bi-collection", id: "library", label: "Library" },
 ];
 
-export const Layout = ({ active, children, title }: LayoutProps) => (
+export const Layout = ({
+  active,
+  children,
+  currentPath = "/",
+  databaseBackend = "mongo",
+  title,
+}: OptionalLayoutProps) => (
   <html lang="en">
     <head>
       <meta charset="UTF-8" />
@@ -117,6 +133,15 @@ export const Layout = ({ active, children, title }: LayoutProps) => (
           color: rgba(255, 255, 255, 0.9) !important;
           font-weight: 500;
         }
+        @media (min-width: 992px) {
+          .navbar-nav {
+            gap: 0.75rem;
+          }
+          .navbar-nav .nav-link {
+            padding-left: 1rem;
+            padding-right: 1rem;
+          }
+        }
         .nav-link.active {
           background: rgba(255, 255, 255, 0.2);
           border-radius: 10px;
@@ -124,6 +149,41 @@ export const Layout = ({ active, children, title }: LayoutProps) => (
         }
         .action-buttons .btn {
           margin: 0 3px;
+        }
+        @media (min-width: 992px) {
+          .navbar-expand-lg .navbar-collapse {
+            align-items: center;
+            flex-wrap: nowrap;
+          }
+        }
+        .database-switch-item {
+          align-items: center;
+          display: flex;
+        }
+        .database-switch {
+          align-items: center;
+          color: #fff;
+          display: flex;
+          flex-shrink: 0;
+          font-size: 0.875rem;
+          gap: 0.5rem;
+          line-height: 1;
+          margin: 0;
+          padding: 0.5rem 0.75rem;
+        }
+        .database-switch .form-check.form-switch {
+          align-items: center;
+          display: inline-flex;
+          margin: 0;
+          min-height: 0;
+          padding: 0;
+        }
+        .database-switch .form-check-input {
+          float: none;
+          margin: 0;
+        }
+        .database-switch .badge {
+          background: rgba(255, 255, 255, 0.25);
         }
       `}</style>
     </head>
@@ -141,8 +201,11 @@ export const Layout = ({ active, children, title }: LayoutProps) => (
           >
             <span class="navbar-toggler-icon" />
           </button>
-          <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
+          <div
+            class="collapse navbar-collapse align-items-center"
+            id="navbarNav"
+          >
+            <ul class="navbar-nav align-items-lg-center ms-auto">
               {navItems.map(item => (
                 <li class="nav-item" key={item.id}>
                   <a
@@ -153,6 +216,31 @@ export const Layout = ({ active, children, title }: LayoutProps) => (
                   </a>
                 </li>
               ))}
+              <li class="nav-item database-switch-item ms-lg-4">
+                <form
+                  action="/settings/database"
+                  class="database-switch"
+                  method="post"
+                >
+                  <input
+                    name="backend"
+                    type="hidden"
+                    value={databaseBackend === "postgres" ? "mongo" : "postgres"}
+                  />
+                  <input name="returnTo" type="hidden" value={currentPath} />
+                  <span>MongoDB</span>
+                  <div class="form-check form-switch">
+                    <input
+                      checked={databaseBackend === "postgres"}
+                      class="form-check-input"
+                      onchange="this.form.submit()"
+                      type="checkbox"
+                    />
+                  </div>
+                  <span>PostgreSQL</span>
+                  <span class="badge text-uppercase">{databaseBackend}</span>
+                </form>
+              </li>
             </ul>
           </div>
         </div>

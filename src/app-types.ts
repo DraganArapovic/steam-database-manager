@@ -1,7 +1,9 @@
-import type { DatabaseContext } from "./db";
+import type { DatabaseBackend } from "./domain/models";
+import type { RepositoryBundle } from "./repositories/types";
 
 export interface AppEnv {
   Variables: {
-    database: DatabaseContext;
+    dbBackend: DatabaseBackend;
+    repos: RepositoryBundle;
   };
 }

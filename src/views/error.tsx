@@ -1,8 +1,8 @@
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 
-import { Layout, type ActivePage } from "./layout";
+import { Layout, type ActivePage, type LayoutContext } from "./layout";
 
-type ErrorPageProps = {
+type ErrorPageProps = Partial<LayoutContext> & {
   active?: ActivePage;
   message: string;
   status: number;
@@ -20,10 +20,17 @@ const formatIssuePath = (
 
 export const ErrorPage = ({
   active = "home",
+  currentPath,
+  databaseBackend,
   message,
   status,
 }: ErrorPageProps) => (
-  <Layout active={active} title={`Error ${status}`}>
+  <Layout
+    active={active}
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title={`Error ${status}`}
+  >
     <div class="card p-4 text-center">
       <i
         class="bi bi-exclamation-triangle"
@@ -40,14 +47,21 @@ export const ErrorPage = ({
 
 export const ValidationErrorPage = ({
   active = "home",
+  currentPath,
+  databaseBackend,
   issues,
   title,
-}: {
+}: Partial<LayoutContext> & {
   active?: ActivePage;
   issues: readonly StandardSchemaV1.Issue[];
   title: string;
 }) => (
-  <Layout active={active} title="Validation error">
+  <Layout
+    active={active}
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title="Validation error"
+  >
     <div class="card p-4">
       <h2 class="mb-3">
         <i class="bi bi-exclamation-triangle" /> {title}

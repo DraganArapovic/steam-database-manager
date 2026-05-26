@@ -1,4 +1,4 @@
-import { Layout } from "./layout";
+import { Layout, type LayoutContext } from "./layout";
 
 export type HomeStats = {
   games: number;
@@ -24,8 +24,17 @@ const StatCard = ({
   </div>
 );
 
-export const HomePage = ({ stats }: { stats: HomeStats }) => (
-  <Layout active="home" title="Dashboard">
+export const HomePage = ({
+  currentPath,
+  databaseBackend,
+  stats,
+}: LayoutContext & { stats: HomeStats }) => (
+  <Layout
+    active="home"
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title="Dashboard"
+  >
     <div class="welcome-section">
       <h1>
         <i class="bi bi-database" /> Steam V2

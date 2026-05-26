@@ -1,6 +1,5 @@
 import { sValidator } from "@hono/standard-validator";
 import { Hono } from "hono";
-import { ObjectId } from "mongodb";
 
 import type { AppEnv } from "../app-types";
 import {
@@ -9,16 +8,7 @@ import {
   type CreateUserForm,
   type UpdateUserForm,
 } from "../forms";
-import {
-  AppUserDocumentSchema,
-  type AppUserDocument,
-} from "../types";
-import {
-  hashPassword,
-  parseObjectId,
-  requireFound,
-  toDecimal128,
-} from "../utils";
+import { requireFound } from "../utils";
 import { formValidationHook } from "../validation";
 import {
   EditUserPage,
@@ -29,40 +19,26 @@ import {
 
 export const usersRoutes = new Hono<AppEnv>();
 
-const createUserDocument = (form: CreateUserForm): AppUserDocument => {
-  const user = {
-    _id: new ObjectId(),
-    country_code: form.country_code,
-    created_at: new Date(),
-    display_name: form.display_name,
-    email: form.email,
-    friends: [],
-    is_banned: false,
-    password_hash: hashPassword(form.password),
-    username: form.username,
-    wallet_balance: toDecimal128(form.wallet_balance),
-  };
-
-  return AppUserDocumentSchema.parse(user);
-};
-
-const userUpdateFromForm = (form: UpdateUserForm) => ({
-  country_code: form.country_code,
-  display_name: form.display_name,
-  email: form.email,
-  is_banned: form.is_banned,
-  username: form.username,
-  wallet_balance: toDecimal128(form.wallet_balance),
-});
-
 usersRoutes.get("/", async c => {
-  const { appUsers } = c.get("database").collections;
-  const users = await appUsers.find().sort({ created_at: -1 }).toArray();
+  const users = await c.get("repos").users.list();
 
-  return c.html(<UsersListPage users={users} />);
+  return c.html(
+    <UsersListPage
+      currentPath={c.req.path}
+      databaseBackend={c.get("dbBackend")}
+      users={users}
+    />,
+  );
 });
 
-usersRoutes.get("/new", c => c.html(<NewUserPage />));
+usersRoutes.get("/new", c =>
+  c.html(
+    <NewUserPage
+      currentPath={c.req.path}
+      databaseBackend={c.get("dbBackend")}
+    />,
+  ),
+);
 
 usersRoutes.post(
   "/",
@@ -72,30 +48,41 @@ usersRoutes.post(
     formValidationHook<CreateUserForm>("Create user failed", "users"),
   ),
   async c => {
-    const { appUsers } = c.get("database").collections;
     const form = c.req.valid("form");
-    const user = createUserDocument(form);
-
-    await appUsers.insertOne(user);
+    await c.get("repos").users.create(form);
 
     return c.redirect("/users");
   },
 );
 
 usersRoutes.get("/:id", async c => {
-  const { appUsers } = c.get("database").collections;
-  const id = parseObjectId(c.req.param("id"), "user id");
-  const user = requireFound(await appUsers.findOne({ _id: id }), "User");
+  const user = requireFound(
+    await c.get("repos").users.findById(c.req.param("id")),
+    "User",
+  );
 
-  return c.html(<UserDetailsPage user={user} />);
+  return c.html(
+    <UserDetailsPage
+      currentPath={c.req.path}
+      databaseBackend={c.get("dbBackend")}
+      user={user}
+    />,
+  );
 });
 
 usersRoutes.get("/:id/edit", async c => {
-  const { appUsers } = c.get("database").collections;
-  const id = parseObjectId(c.req.param("id"), "user id");
-  const user = requireFound(await appUsers.findOne({ _id: id }), "User");
+  const user = requireFound(
+    await c.get("repos").users.findById(c.req.param("id")),
+    "User",
+  );
 
-  return c.html(<EditUserPage user={user} />);
+  return c.html(
+    <EditUserPage
+      currentPath={c.req.path}
+      databaseBackend={c.get("dbBackend")}
+      user={user}
+    />,
+  );
 });
 
 usersRoutes.post(
@@ -106,32 +93,15 @@ usersRoutes.post(
     formValidationHook<UpdateUserForm>("Update user failed", "users"),
   ),
   async c => {
-    const { appUsers } = c.get("database").collections;
-    const id = parseObjectId(c.req.param("id"), "user id");
     const form = c.req.valid("form");
-
-    const result = await appUsers.updateOne(
-      { _id: id },
-      { $set: userUpdateFromForm(form) },
-    );
-
-    requireFound(result.matchedCount === 0 ? null : result, "User");
+    await c.get("repos").users.update(c.req.param("id"), form);
 
     return c.redirect("/users");
   },
 );
 
 usersRoutes.post("/:id/delete", async c => {
-  const {
-    appUsers,
-    libraryEntries,
-  } = c.get("database").collections;
-  const id = parseObjectId(c.req.param("id"), "user id");
-
-  await Promise.all([
-    appUsers.deleteOne({ _id: id }),
-    libraryEntries.deleteMany({ user_id: id }),
-  ]);
+  await c.get("repos").users.delete(c.req.param("id"));
 
   return c.redirect("/users");
 });

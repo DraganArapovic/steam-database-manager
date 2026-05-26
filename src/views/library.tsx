@@ -1,13 +1,8 @@
-import type {
-  AppUserDocument,
-  GameDocument,
-  LibraryEntryDocument,
-} from "../types";
+import type { AppUser, Game, LibraryEntry } from "../domain/models";
 import {
   formatDate,
   formatDateTime,
   formatMoney,
-  toObjectIdString,
 } from "../utils";
 import {
   DeleteButton,
@@ -15,22 +10,23 @@ import {
   EmptyState,
   PageHeader,
 } from "./components";
-import { Layout } from "./layout";
+import { Layout, type LayoutContext } from "./layout";
 
-export type LibraryEntryView = LibraryEntryDocument & {
-  game?: GameDocument | null;
-  user?: Pick<AppUserDocument, "_id" | "email" | "username"> | null;
-};
-
-const libraryHref = (entry: LibraryEntryDocument): string =>
-  `/library/${toObjectIdString(entry._id)}`;
+const libraryHref = (entry: LibraryEntry): string => `/library/${entry.id}`;
 
 export const LibraryListPage = ({
+  currentPath,
+  databaseBackend,
   entries,
-}: {
-  entries: readonly LibraryEntryView[];
+}: LayoutContext & {
+  entries: readonly LibraryEntry[];
 }) => (
-  <Layout active="library" title="Library">
+  <Layout
+    active="library"
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title="Library"
+  >
     <PageHeader
       action={
         <a class="btn btn-primary" href="/library/new">
@@ -59,17 +55,17 @@ export const LibraryListPage = ({
           </thead>
           <tbody>
             {entries.map(entry => (
-              <tr key={toObjectIdString(entry._id)}>
+              <tr key={entry.id}>
                 <td>
-                  <strong>{entry.game_snapshot.title}</strong>
+                  <strong>{entry.gameTitle}</strong>
                 </td>
                 <td>{entry.user?.username ?? "Unknown User"}</td>
-                <td>{entry.playtime_minutes}</td>
-                <td>{formatDate(entry.acquired_at)}</td>
-                <td>{formatDateTime(entry.last_played_at)}</td>
+                <td>{entry.playtimeMinutes}</td>
+                <td>{formatDate(entry.acquiredAt)}</td>
+                <td>{formatDateTime(entry.lastPlayedAt)}</td>
                 <td>
-                  <span class={`badge ${entry.is_hidden ? "bg-secondary" : "bg-success"}`}>
-                    {entry.is_hidden ? "Hidden" : "Visible"}
+                  <span class={`badge ${entry.isHidden ? "bg-secondary" : "bg-success"}`}>
+                    {entry.isHidden ? "Hidden" : "Visible"}
                   </span>
                 </td>
                 <td class="action-buttons">
@@ -94,13 +90,20 @@ export const LibraryListPage = ({
 );
 
 export const NewLibraryEntryPage = ({
+  currentPath,
+  databaseBackend,
   games,
   users,
-}: {
-  games: readonly GameDocument[];
-  users: readonly AppUserDocument[];
+}: LayoutContext & {
+  games: readonly Game[];
+  users: readonly AppUser[];
 }) => (
-  <Layout active="library" title="Add Library Entry">
+  <Layout
+    active="library"
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title="Add Library Entry"
+  >
     <div class="form-container">
       <h2 class="mb-4">
         <i class="bi bi-plus-circle" /> Add Library Entry
@@ -113,7 +116,7 @@ export const NewLibraryEntryPage = ({
           <select class="form-select" id="user_id" name="user_id" required>
             <option value="">Select User</option>
             {users.map(user => (
-              <option key={toObjectIdString(user._id)} value={toObjectIdString(user._id)}>
+              <option key={user.id} value={user.id}>
                 {user.username} ({user.email})
               </option>
             ))}
@@ -126,7 +129,7 @@ export const NewLibraryEntryPage = ({
           <select class="form-select" id="game_id" name="game_id" required>
             <option value="">Select Game</option>
             {games.map(game => (
-              <option key={toObjectIdString(game._id)} value={toObjectIdString(game._id)}>
+              <option key={game.id} value={game.id}>
                 {game.title}
               </option>
             ))}
@@ -163,11 +166,18 @@ export const NewLibraryEntryPage = ({
 );
 
 export const EditLibraryEntryPage = ({
+  currentPath,
+  databaseBackend,
   entry,
-}: {
-  entry: LibraryEntryDocument;
+}: LayoutContext & {
+  entry: LibraryEntry;
 }) => (
-  <Layout active="library" title={`Edit ${entry.game_snapshot.title}`}>
+  <Layout
+    active="library"
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title={`Edit ${entry.gameTitle}`}
+  >
     <div class="form-container">
       <h2 class="mb-4">
         <i class="bi bi-pencil-square" /> Edit Library Entry
@@ -182,7 +192,7 @@ export const EditLibraryEntryPage = ({
             disabled
             id="game_title"
             type="text"
-            value={entry.game_snapshot.title}
+            value={entry.gameTitle}
           />
         </div>
         <div class="mb-3">
@@ -195,12 +205,12 @@ export const EditLibraryEntryPage = ({
             min="0"
             name="playtime_minutes"
             type="number"
-            value={entry.playtime_minutes}
+            value={entry.playtimeMinutes}
           />
         </div>
         <div class="form-check mb-3">
           <input
-            checked={entry.is_hidden}
+            checked={entry.isHidden}
             class="form-check-input"
             id="is_hidden"
             name="is_hidden"
@@ -222,11 +232,18 @@ export const EditLibraryEntryPage = ({
 );
 
 export const LibraryDetailsPage = ({
+  currentPath,
+  databaseBackend,
   entry,
-}: {
-  entry: LibraryEntryView;
+}: LayoutContext & {
+  entry: LibraryEntry;
 }) => (
-  <Layout active="library" title={entry.game_snapshot.title}>
+  <Layout
+    active="library"
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title={entry.gameTitle}
+  >
     <div class="card p-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>
@@ -247,19 +264,19 @@ export const LibraryDetailsPage = ({
           <h5>Entry Information</h5>
           <table class="table">
             <tbody>
-              <DetailRow label="Game" value={entry.game_snapshot.title} />
+              <DetailRow label="Game" value={entry.gameTitle} />
               <DetailRow label="User" value={entry.user?.username ?? "Unknown User"} />
               <DetailRow
                 label="Playtime"
-                value={`${entry.playtime_minutes} minutes`}
+                value={`${entry.playtimeMinutes} minutes`}
               />
               <DetailRow
                 label="Visibility"
                 value={
                   <span
-                    class={`badge ${entry.is_hidden ? "bg-secondary" : "bg-success"}`}
+                    class={`badge ${entry.isHidden ? "bg-secondary" : "bg-success"}`}
                   >
-                    {entry.is_hidden ? "Hidden" : "Visible"}
+                    {entry.isHidden ? "Hidden" : "Visible"}
                   </span>
                 }
               />
@@ -270,14 +287,14 @@ export const LibraryDetailsPage = ({
           <h5>Dates</h5>
           <table class="table">
             <tbody>
-              <DetailRow label="Acquired" value={formatDateTime(entry.acquired_at)} />
+              <DetailRow label="Acquired" value={formatDateTime(entry.acquiredAt)} />
               <DetailRow
                 label="Last Played"
-                value={formatDateTime(entry.last_played_at)}
+                value={formatDateTime(entry.lastPlayedAt)}
               />
               <DetailRow
                 label="Price at Acquisition"
-                value={`$${formatMoney(entry.game_snapshot.base_price)}`}
+                value={`$${formatMoney(entry.gameBasePrice)}`}
               />
             </tbody>
           </table>

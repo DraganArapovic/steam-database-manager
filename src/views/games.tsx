@@ -1,9 +1,8 @@
-import type { GameDocument } from "../types";
+import type { Game } from "../domain/models";
 import {
   formatDate,
   formatMoney,
   toDateInputValue,
-  toObjectIdString,
 } from "../utils";
 import {
   DeleteButton,
@@ -12,12 +11,11 @@ import {
   PageHeader,
   Tags,
 } from "./components";
-import { Layout } from "./layout";
+import { Layout, type LayoutContext } from "./layout";
 
-const gameHref = (game: GameDocument): string =>
-  `/games/${toObjectIdString(game._id)}`;
+const gameHref = (game: Game): string => `/games/${game.id}`;
 
-const GameFormFields = ({ game }: { game?: GameDocument }) => (
+const GameFormFields = ({ game }: { game?: Game }) => (
   <>
     <div class="mb-3">
       <label class="form-label" for="title">
@@ -50,7 +48,7 @@ const GameFormFields = ({ game }: { game?: GameDocument }) => (
           id="release_date"
           name="release_date"
           type="date"
-          value={toDateInputValue(game?.release_date)}
+          value={toDateInputValue(game?.releaseDate)}
         />
       </div>
       <div class="col-md-4 mb-3">
@@ -64,7 +62,7 @@ const GameFormFields = ({ game }: { game?: GameDocument }) => (
           name="base_price"
           step="0.01"
           type="number"
-          value={game === undefined ? "0.00" : formatMoney(game.base_price)}
+          value={game === undefined ? "0.00" : formatMoney(game.basePrice)}
         />
       </div>
       <div class="col-md-4 mb-3">
@@ -78,7 +76,7 @@ const GameFormFields = ({ game }: { game?: GameDocument }) => (
           min="0"
           name="age_rating"
           type="number"
-          value={game?.age_rating ?? ""}
+          value={game?.ageRating ?? ""}
         />
       </div>
     </div>
@@ -134,7 +132,7 @@ const GameFormFields = ({ game }: { game?: GameDocument }) => (
           name="developer_country"
           placeholder="US"
           type="text"
-          value={game?.developer.country_code ?? ""}
+        value={game?.developer.countryCode ?? ""}
         />
       </div>
       <div class="col-md-3 mb-3">
@@ -148,7 +146,7 @@ const GameFormFields = ({ game }: { game?: GameDocument }) => (
           min="1800"
           name="developer_founded"
           type="number"
-          value={game?.developer.founded_year ?? ""}
+          value={game?.developer.foundedYear ?? ""}
         />
       </div>
     </div>
@@ -178,13 +176,13 @@ const GameFormFields = ({ game }: { game?: GameDocument }) => (
           name="publisher_country"
           placeholder="US"
           type="text"
-          value={game?.publisher.country_code ?? ""}
+          value={game?.publisher.countryCode ?? ""}
         />
       </div>
     </div>
     <div class="form-check mb-3">
       <input
-        checked={game?.is_early_access ?? false}
+        checked={game?.isEarlyAccess ?? false}
         class="form-check-input"
         id="is_early_access"
         name="is_early_access"
@@ -197,8 +195,17 @@ const GameFormFields = ({ game }: { game?: GameDocument }) => (
   </>
 );
 
-export const GamesListPage = ({ games }: { games: readonly GameDocument[] }) => (
-  <Layout active="games" title="Games">
+export const GamesListPage = ({
+  currentPath,
+  databaseBackend,
+  games,
+}: LayoutContext & { games: readonly Game[] }) => (
+  <Layout
+    active="games"
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title="Games"
+  >
     <PageHeader
       action={
         <a class="btn btn-primary" href="/games/new">
@@ -227,21 +234,21 @@ export const GamesListPage = ({ games }: { games: readonly GameDocument[] }) => 
           </thead>
           <tbody>
             {games.map(game => (
-              <tr key={toObjectIdString(game._id)}>
+              <tr key={game.id}>
                 <td>
                   <strong>{game.title}</strong>
                 </td>
                 <td>{game.developer.name}</td>
-                <td>${formatMoney(game.base_price)}</td>
-                <td>{game.age_rating === null ? "N/A" : `${game.age_rating}+`}</td>
+                <td>${formatMoney(game.basePrice)}</td>
+                <td>{game.ageRating === null ? "N/A" : `${game.ageRating}+`}</td>
                 <td>
                   <Tags className="bg-info" items={game.platforms} />
                 </td>
                 <td>
                   <span
-                    class={`badge ${game.is_early_access ? "bg-warning" : "bg-success"}`}
+                    class={`badge ${game.isEarlyAccess ? "bg-warning" : "bg-success"}`}
                   >
-                    {game.is_early_access ? "Early Access" : "Released"}
+                    {game.isEarlyAccess ? "Early Access" : "Released"}
                   </span>
                 </td>
                 <td class="action-buttons">
@@ -262,8 +269,16 @@ export const GamesListPage = ({ games }: { games: readonly GameDocument[] }) => 
   </Layout>
 );
 
-export const NewGamePage = () => (
-  <Layout active="games" title="Add Game">
+export const NewGamePage = ({
+  currentPath,
+  databaseBackend,
+}: LayoutContext) => (
+  <Layout
+    active="games"
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title="Add Game"
+  >
     <div class="form-container">
       <h2 class="mb-4">
         <i class="bi bi-plus-circle" /> Add New Game
@@ -281,8 +296,17 @@ export const NewGamePage = () => (
   </Layout>
 );
 
-export const EditGamePage = ({ game }: { game: GameDocument }) => (
-  <Layout active="games" title={`Edit ${game.title}`}>
+export const EditGamePage = ({
+  currentPath,
+  databaseBackend,
+  game,
+}: LayoutContext & { game: Game }) => (
+  <Layout
+    active="games"
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title={`Edit ${game.title}`}
+  >
     <div class="form-container">
       <h2 class="mb-4">
         <i class="bi bi-pencil-square" /> Edit Game
@@ -300,8 +324,17 @@ export const EditGamePage = ({ game }: { game: GameDocument }) => (
   </Layout>
 );
 
-export const GameDetailsPage = ({ game }: { game: GameDocument }) => (
-  <Layout active="games" title={game.title}>
+export const GameDetailsPage = ({
+  currentPath,
+  databaseBackend,
+  game,
+}: LayoutContext & { game: Game }) => (
+  <Layout
+    active="games"
+    currentPath={currentPath}
+    databaseBackend={databaseBackend}
+    title={game.title}
+  >
     <div class="card p-4">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>
@@ -324,19 +357,19 @@ export const GameDetailsPage = ({ game }: { game: GameDocument }) => (
             <tbody>
               <DetailRow label="Title" value={game.title} />
               <DetailRow label="Description" value={game.description ?? "N/A"} />
-              <DetailRow label="Release Date" value={formatDate(game.release_date)} />
-              <DetailRow label="Price" value={`$${formatMoney(game.base_price)}`} />
+              <DetailRow label="Release Date" value={formatDate(game.releaseDate)} />
+              <DetailRow label="Price" value={`$${formatMoney(game.basePrice)}`} />
               <DetailRow
                 label="Age Rating"
-                value={game.age_rating === null ? "N/A" : `${game.age_rating}+`}
+                value={game.ageRating === null ? "N/A" : `${game.ageRating}+`}
               />
               <DetailRow
                 label="Status"
                 value={
                   <span
-                    class={`badge ${game.is_early_access ? "bg-warning" : "bg-success"}`}
+                    class={`badge ${game.isEarlyAccess ? "bg-warning" : "bg-success"}`}
                   >
-                    {game.is_early_access ? "Early Access" : "Released"}
+                    {game.isEarlyAccess ? "Early Access" : "Released"}
                   </span>
                 }
               />
@@ -350,16 +383,16 @@ export const GameDetailsPage = ({ game }: { game: GameDocument }) => (
               <DetailRow label="Developer" value={game.developer.name} />
               <DetailRow
                 label="Developer Country"
-                value={game.developer.country_code ?? "N/A"}
+                value={game.developer.countryCode ?? "N/A"}
               />
               <DetailRow
                 label="Founded"
-                value={game.developer.founded_year?.toString() ?? "N/A"}
+                value={game.developer.foundedYear?.toString() ?? "N/A"}
               />
               <DetailRow label="Publisher" value={game.publisher.name} />
               <DetailRow
                 label="Publisher Country"
-                value={game.publisher.country_code ?? "N/A"}
+                value={game.publisher.countryCode ?? "N/A"}
               />
               <DetailRow
                 label="Platforms"
