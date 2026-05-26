@@ -3,7 +3,7 @@
 Web aplikacija za upravljanje bazom podataka digitalne trgovine videoigara
 inspirirane Steam platformom.  
 Projekt omogućava upravljanje korisnicima, igrama i bibliotekama kroz web
-sučelje razvijeno pomoću Bun, Hono, MongoDB i TypeScript tehnologija.
+sučelje razvijeno pomoću Node.js, Hono, MongoDB i TypeScript tehnologija.
 
 ---
 
@@ -24,7 +24,7 @@ sučelje razvijeno pomoću Bun, Hono, MongoDB i TypeScript tehnologija.
 
 Projekt koristi sljedeće tehnologije:
 
-- Bun
+- Node.js
 - Hono
 - TypeScript
 - MongoDB (službeni driver)
@@ -51,7 +51,7 @@ cd steam-database-manager
 ### 3. Instalacija dependency paketa
 
 ```bash
-bun install
+npm install
 ```
 
 ### 4. Konfiguracija okruženja
@@ -69,10 +69,10 @@ U `.env` postavite connection string i naziv baze:
 ### 5. Pokretanje aplikacije
 
 ```bash
-bun run dev
+npm run dev
 ```
 
-Za pokretanje bez hot reloada: `bun run start`.
+Za pokretanje bez hot reloada: `npm run start`.
 
 ---
 
